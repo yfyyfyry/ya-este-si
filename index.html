@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>StreamView Nexus Infinity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #000; --card: #111; --accent: #ff0050; --blue: #0095f6; --text: #fff;
+            --glass: rgba(255, 255, 255, 0.1); --border: #262626;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica; margin: 0; overflow: auto; height: 100vh; }
+
+        /* AUTH GLASS EFFECT */
+        #authOverlay { position: fixed; inset: 0; background: radial-gradient(circle at top, #1a1a1a, #000); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 25px; }
+        .auth-card { background: var(--card); padding: 40px 30px; border-radius: 35px; width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .auth-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid #333; background: #050505; color: white; font-size: 16px; transition: 0.3s; }
+        .auth-input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0,149,246,0.3); }
+        .auth-btn { width: 100%; padding: 16px; margin-top: 20px; border-radius: 15px; border: none; font-weight: 700; background: linear-gradient(45deg, var(--blue), #00d4ff); color: white; cursor: pointer; }
+
+        /* HEADER & STORIES */
+        .app-header { background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 1000; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; gap:12px; position:relative; }
+        .logo { font-size: 24px; font-weight: 900; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* search */
+        .search-wrap { flex:1; display:flex; justify-content:center; }
+        #globalSearch { width:60%; max-width:560px; padding:10px 14px; border-radius:12px; border:1px solid #222; background:#0b0b0b; color:#fff; outline:none; }
+        #searchResultsBox { position:absolute; top:64px; left:50%; transform:translateX(-50%); width:60%; max-width:560px; display:none; z-index:12000; max-height:300px; overflow:auto; background:#0f0f0f; border:1px solid #222; border-radius:10px; padding:8px; }
+
+        .stories-bar { display: flex; gap: 15px; padding: 10px 15px; overflow-x: auto; scrollbar-width: none; }
+        .story-ring { width: 68px; height: 68px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, #f9ed32, #ee2a7b, #002aff); flex-shrink: 0; cursor: pointer; }
+        .story-pfp { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #111; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; }
+
+        /* PAGES */
+        .page { display: none; width: 100%; min-height: calc(100vh - 175px); overflow-y: auto; scroll-behavior: smooth; }
+        .active-page { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FEED */
+        .video-card { margin-bottom: 20px; background: #000; border-bottom: 1px solid #111; }
+        .video-card video { width: 100%; aspect-ratio: 16/9; display: block; background: #111; }
+        .v-body { padding: 15px; display: flex; gap: 12px; }
+        .avatar-v { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; border: 1px solid #333; }
+        .v-actions { display: flex; justify-content: space-between; padding: 10px 20px 20px; }
+        .act-group { display: flex; gap: 20px; }
+        .act-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .act-btn:active { transform: scale(0.8); }
+        .active-l { color: var(--accent) !important; }
+
+        /* STATS STYLE */
+        .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 20px 0; }
+        .stat-val { display: block; font-weight: 800; font-size: 18px; }
+        .stat-lbl { font-size: 12px; color: #888; }
+
+        /* SHORTS */
+        #shortsPage { height: calc(100vh - 65px); scroll-snap-type: y mandatory; overflow-y: auto; background: #000; }
+        .short-frame { height: calc(100vh - 65px); width: 100vw; scroll-snap-align: start; position: relative; }
+        .short-frame video { width: 100%; height: 100%; object-fit: cover; }
+        .short-side { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 25px; align-items: center; z-index: 10; }
+        .side-btn { background: none; border: none; color: white; display: flex; flex-direction: column; gap: 5px; font-size: 13px; text-shadow: 0 2px 10px rgba(0,0,0,1); }
+
+        /* CHAT */
+        .chat-view { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
+        .chat-header { padding: 15px; border-bottom: 0.5px solid #222; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.9); }
+        .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg-bubble { padding: 12px 16px; border-radius: 22px; max-width: 75%; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .msg-me { background: linear-gradient(45deg, var(--blue), #00d4ff); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg-them { background: #262626; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .user-item { display: flex; align-items: center; gap: 15px; padding: 15px 20px; border-bottom: 0.5px solid #111; cursor: pointer; }
+        .unread-badge { background: var(--blue); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+
+        /* NAV */
+        nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: rgba(0,0,0,0.98); border-top: 0.5px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
+        .nav-link { color: #888; text-decoration: none; font-size: 22px; transition: 0.3s; }
+        .nav-link.active { color: #fff; transform: translateY(-3px); }
+
+        /* MODALES */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background: #1c1c1c; width: 100%; max-width: 400px; padding: 25px; border-radius: 30px; border: 1px solid #333; position: relative; }
+        .close-modal { position: absolute; top: 20px; right: 20px; color: #888; font-size: 20px; cursor: pointer; }
+        .del-btn-mini { color: #ff3b30; font-size: 12px; background: none; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="auth-card">
+            <h1 class="logo" style="font-size: 35px; margin-bottom: 0;">Nexus</h1>
+            <p id="authT" style="color:#666; font-size: 14px; margin-top: 5px;">Tu mundo, tus reglas.</p>
+            <div id="regOnly" style="display:none; margin-top: 20px;">
+                <input type="text" id="regName" class="auth-input" placeholder="Nombre de usuario">
+            </div>
+            <input type="email" id="authEmail" class="auth-input" placeholder="Correo" style="margin-top:20px">
+            <input type="password" id="authPass" class="auth-input" placeholder="Contraseña">
+            <button class="auth-btn" onclick="handleAuth()">CONTINUAR</button>
+            <p onclick="toggleA()" style="margin-top:25px; color:var(--blue); cursor:pointer; font-weight: 600;" id="authL">¿Nuevo aquí? Crea una cuenta</p>
+        </div>
+    </div>
+
+    <header class="app-header" id="hMain">
+        <div class="top-nav">
+            <div class="logo">Nexus</div>
+
+            <!-- SEARCH -->
+            <div class="search-wrap">
+                <input id="globalSearch" placeholder="Buscar usuarios o videos..." />
+                <div id="searchResultsBox"></div>
+            </div>
+
+            <div id="myAvatar" class="avatar-v" style="width:34px; height:34px; cursor:pointer" onclick="changePage('profilePage', null)"></div>
+        </div>
+
+        <div class="stories-bar" id="storyBar">
+            <div class="story-item" onclick="openModal('storyUpModal')" style="text-align:center; font-size:11px">
+                <div class="story-ring" style="background:#222"><div class="story-pfp" style="color:var(--blue)">+</div></div>
+                <span style="color:#888">Tu historia</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="homePage" class="page active-page"></div>
+    <div id="shortsPage" class="page"></div>
+    <div id="inboxPage" class="page"><h3 style="padding:20px 20px 0">Mensajes</h3><div id="chatList"></div></div>
+
+    <div id="profilePage" class="page">
+        <div style="text-align:center; padding:50px 20px 20px">
+            <div id="pBigAvatar" class="avatar-v" style="width:100px; height:100px; margin:0 auto; font-size:40px; border:3px solid var(--border)"></div>
+            <h2 id="pNameDisp" style="margin:15px 0 5px; font-weight:800"></h2>
+
+            <div class="profile-stats">
+                <div class="stat-item"><span class="stat-val" id="statFollowers">0</span><span class="stat-lbl">Seguidores</span></div>
+                <div class="stat-item"><span class="stat-val" id="statFollowing">0</span><span class="stat-lbl">Siguiendo</span></div>
+                <div class="stat-item"><span class="stat-val" id="statLikes">0</span><span class="stat-lbl">Me gusta</span></div>
+            </div>
+
+            <p id="pEmailDisp" style="color:#555; margin-bottom:25px; font-size:14px"></p>
+            <button onclick="logout()" style="background:#ff3b30; color:white; border:none; padding:10px 35px; border-radius:15px; font-weight:bold">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div id="chatView" class="chat-view">
+        <div class="chat-header">
+            <i class="fas fa-arrow-left" onclick="closeChat()" style="font-size:20px; cursor:pointer"></i>
+            <div id="chatContactAvatar" class="avatar-v" style="width:35px; height:35px"></div>
+            <b id="chatContactName">Usuario</b>
+        </div>
+        <div class="messages-area" id="msgArea"></div>
+        <div class="chat-input-area" style="padding:15px; display:flex; gap:10px; background:#000; align-items:center">
+            <i class="fas fa-image" onclick="sendMediaMsg('image')" style="color:#888; font-size:22px; cursor:pointer"></i>
+            <input type="text" id="msgInput" class="auth-input" style="margin:0; flex:1" placeholder="Escribe...">
+            <button class="act-btn" style="color:var(--blue); font-size:20px" onclick="sendTextMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="commentModal" class="modal">
+        <div class="modal-box">
+            <i class="fas fa-times close-modal" onclick="closeModal('commentModal')" style="cursor:pointer"></i>
+            <h3 style="margin-top: 0;">Comentarios</h3>
+            <div id="commList" style="max-height:300px; overflow-y:auto; margin-bottom:15px; font-size:14px"></div>
+            <div style="display:flex; gap:10px">
+                <input type="text" id="commInput" class="auth-input" placeholder="Escribe un comentario..." style="margin:0">
+                <button class="auth-btn" style="margin:0; width:60px" onclick="postComment()"><i class="fas fa-check"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadModal" class="modal"><div class="modal-box">
+        <h3>Nueva Publicación</h3>
+        <select id="vT" class="auth-input"><option value="video">🎞️ Video (YouTube)</option><option value="short">⚡ Short (TikTok)</option></select>
+        <input type="text" id="vTitle" class="auth-input" placeholder="Título">
+        <input type="file" id="vFile" class="auth-input" accept="video/*">
+        <button class="auth-btn" onclick="upVideo()">PUBLICAR</button>
+        <button class="auth-btn" style="background:none" onclick="closeModal('uploadModal')">Cerrar</button>
+    </div></div>
+
+    <div id="storyUpModal" class="modal"><div class="modal-box">
+        <h3>Tu Historia</h3>
+        <input type="file" id="sFile" class="auth-input" accept="image/*,video/*">
+        <button class="auth-btn" style="background:var(--accent)" onclick="upStory()">SUBIR AHORA</button>
+        <button class="auth-btn" style="background:none" onclick="closeModal('storyUpModal')">Cerrar</button>
+    </div></div>
+
+    <nav>
+        <a href="#" class="nav-link active" onclick="changePage('homePage', this)"><i class="fas fa-home"></i></a>
+        <a href="#" class="nav-link" onclick="changePage('shortsPage', this)"><i class="fas fa-bolt"></i></a>
+        <a href="#" class="nav-link" onclick="openModal('uploadModal')"><i class="fas fa-plus-circle" style="font-size:30px; color:white"></i></a>
+        <a href="#" class="nav-link" onclick="changePage('inboxPage', this)"><i class="fas fa-comment"></i></a>
+        <a href="#" class="nav-link" onclick="changePage('profilePage', this)"><i class="fas fa-user"></i></a>
+    </nav>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/dist/supabase.min.js"></script>
+    
+    <!-- API Client con Supabase -->
+    <script src="js/api-supabase.js"></script>
+    
+    <!-- App Principal con Supabase -->
+    <script src="js/app-supabase.js"></script>
+
+</body>
+</html>

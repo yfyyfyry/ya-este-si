@@ -1,0 +1,9 @@
+# Archivos a ignorar en Git
+backend/
+index-old.html
+index-broken.html
+nexus_bridge.js
+INSTRUCCIONES.md
+.vscode/
+*.log
+.DS_Store
