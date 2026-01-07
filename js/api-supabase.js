@@ -541,7 +541,7 @@ class NexusAPI {
     }
 }
 
-// Crear instancia global
+// Crear instancia global inmediatamente
 const nexusAPI = new NexusAPI();
 
 // Exportar para uso en otros scripts
@@ -551,3 +551,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.NexusAPI = NexusAPI;
     window.nexusAPI = nexusAPI;
 }
+
+// Forzar disponibilidad global
+console.log('nexusAPI cargado:', typeof nexusAPI !== 'undefined');

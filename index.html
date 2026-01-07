@@ -198,8 +198,25 @@
     <!-- API Client con Supabase -->
     <script src="js/api-supabase.js"></script>
     
-    <!-- App Principal con Supabase -->
-    <script src="js/app-supabase.js"></script>
+    <!-- Verificar que nexusAPI esté disponible -->
+    <script>
+        // Esperar a que nexusAPI esté disponible
+        function waitForNexusAPI() {
+            if (typeof nexusAPI !== 'undefined') {
+                console.log('✅ nexusAPI está disponible');
+                // Cargar la app principal
+                const script = document.createElement('script');
+                script.src = 'js/app-supabase.js';
+                document.head.appendChild(script);
+            } else {
+                console.log('⏳ Esperando nexusAPI...');
+                setTimeout(waitForNexusAPI, 100);
+            }
+        }
+        
+        // Iniciar verificación
+        waitForNexusAPI();
+    </script>
 
 </body>
 </html>
