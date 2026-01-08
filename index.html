@@ -91,6 +91,14 @@
         <div class="auth-card">
             <h1 class="logo" style="font-size: 35px; margin-bottom: 0;">Nexus</h1>
             <p id="authT" style="color:#666; font-size: 14px; margin-top: 5px;">Tu mundo, tus reglas.</p>
+            
+            <!-- Botón de modo invitado -->
+            <button onclick="startGuestMode()" style="width: 100%; padding: 12px; margin: 15px 0; border-radius: 15px; border: 1px solid #333; background: #1a1a1a; color: #888; cursor: pointer; font-weight: 600;">
+                🎭 Entrar como Invitado
+            </button>
+            
+            <div style="text-align: center; color: #555; font-size: 12px; margin: 10px 0;">O</div>
+            
             <div id="regOnly" style="display:none; margin-top: 20px;">
                 <input type="text" id="regName" class="auth-input" placeholder="Nombre de usuario">
             </div>
@@ -170,11 +178,22 @@
 
     <div id="uploadModal" class="modal"><div class="modal-box">
         <h3>Nueva Publicación</h3>
-        <select id="vT" class="auth-input"><option value="video">🎞️ Video (YouTube)</option><option value="short">⚡ Short (TikTok)</option></select>
+        <select id="vT" class="auth-input">
+            <option value="photo">📷 Foto (Facebook)</option>
+            <option value="short">⚡ Short (TikTok)</option>
+            <option value="video">🎞️ Video (YouTube)</option>
+        </select>
         <input type="text" id="vTitle" class="auth-input" placeholder="Título">
-        <input type="file" id="vFile" class="auth-input" accept="video/*">
-        <button class="auth-btn" onclick="upVideo()">PUBLICAR</button>
+        <input type="file" id="vFile" class="auth-input" accept="image/*,video/*">
+        <button class="auth-btn" onclick="upContent()">PUBLICAR</button>
         <button class="auth-btn" style="background:none" onclick="closeModal('uploadModal')">Cerrar</button>
+        
+        <!-- Opción de cámara -->
+        <div style="margin-top: 15px; text-align: center;">
+            <button onclick="openCamera()" style="background: linear-gradient(45deg, #ff0050, #ff4500); color: white; border: none; padding: 10px 20px; border-radius: 15px; cursor: pointer; font-weight: 600;">
+                📸 Abrir Cámara
+            </button>
+        </div>
     </div></div>
 
     <div id="storyUpModal" class="modal"><div class="modal-box">
